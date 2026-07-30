@@ -1,0 +1,71 @@
+<div class="incidents-header">
+  <div class="title-section">
+    <h1>System Incidents</h1>
+    <p>View, assign, and analyze active incident tickets.</p>
+  </div>
+  <a routerLink="/incidents/create" class="create-btn">+ File New Incident</a>
+</div>
+
+<!-- Loading state -->
+<div *ngIf="isLoading" class="loading-state">
+  <div class="spinner"></div>
+  <p>Loading incidents from database...</p>
+</div>
+
+<!-- Error state -->
+<div *ngIf="!isLoading && errorMessage" class="error-state">
+  <div class="error-card">
+    <span class="error-icon">⚠️</span>
+    <h3>Connection / Access Failure</h3>
+    <p>{{ errorMessage }}</p>
+    <button class="retry-btn" (click)="retry()">Retry Request</button>
+  </div>
+</div>
+
+<!-- Empty state -->
+<div *ngIf="!isLoading && !errorMessage && incidents.length === 0" class="empty-state">
+  <div class="empty-card">
+    <span class="empty-icon">📂</span>
+    <h3>No Incidents Found</h3>
+    <p>All clear! There are no incidents currently registered in the database.</p>
+  </div>
+</div>
+
+<!-- Data table state -->
+<div *ngIf="!isLoading && !errorMessage && incidents.length > 0" class="table-container">
+  <table class="incidents-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Severity</th>
+        <th>Status</th>
+        <th>Date Logged</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let incident of incidents">
+        <td>#{{ incident.id.substring(0, 8) }}</td>
+        <td class="incident-title">
+          <strong>{{ incident.title }}</strong>
+          <span class="desc-preview">{{ incident.description }}</span>
+        </td>
+        <td>
+          <span class="badge" [ngClass]="getSeverityClass(incident.priority)">
+            {{ getPriorityLabel(incident.priority) }}
+          </span>
+        </td>
+        <td>
+          <span class="badge" [ngClass]="getStatusClass(incident.status)">
+            {{ getStatusLabel(incident.status) }}
+          </span>
+        </td>
+        <td>{{ incident.createdAtUtc | date:'mediumDate' }}</td>
+        <td>
+          <a [routerLink]="['/incidents', incident.id]" class="action-btn">View Details</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

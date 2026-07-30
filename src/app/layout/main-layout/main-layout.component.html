@@ -1,0 +1,33 @@
+<div class="layout-wrapper">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-logo">🛡️</span>
+      <span class="brand-name">IR Portal</span>
+    </div>
+    <nav class="nav-menu">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a routerLink="/incidents" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🚨</span>
+        <span class="nav-label">Incidents</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Right side: Header + Content -->
+  <div class="main-container">
+    <header class="header">
+      <h2 class="page-title">AI Incident Reporting System</h2>
+      <div class="user-profile">
+        <span class="user-badge">Admin</span>
+        <button class="logout-btn" (click)="onLogout()">Logout</button>
+      </div>
+    </header>
+    <main class="content-body">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
