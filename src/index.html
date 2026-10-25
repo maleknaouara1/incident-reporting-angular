@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>IncidentReportingFrontend</title>
+  <title>AI Incident Reporting</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Baseline policy; script-src is added by the build (autoCsp). connect-src and
+       frame-ancestors should be set as HTTP headers by the hosting server. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="object-src 'none'; base-uri 'self'; form-action 'self'; font-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="mat-typography">
   <app-root></app-root>

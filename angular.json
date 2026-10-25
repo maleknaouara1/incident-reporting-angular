@@ -49,6 +49,9 @@
                   "maximumError": "12kb"
                 }
               ],
+              "security": {
+                "autoCsp": true
+              },
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
