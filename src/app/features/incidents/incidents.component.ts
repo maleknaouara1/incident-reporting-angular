@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IncidentService } from '../../core/services/incident.service';
 import { IncidentDto, IncidentPriority, IncidentStatus } from '../../core/models/incident.model';
@@ -11,6 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
     selector: 'app-incidents',
     imports: [CommonModule, RouterLink],
     templateUrl: './incidents.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './incidents.component.scss'
 })
 export class IncidentsComponent implements OnInit {

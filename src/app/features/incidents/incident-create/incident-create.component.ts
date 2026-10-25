@@ -1,4 +1,4 @@
-import { Component, inject, DestroyRef } from '@angular/core';
+import { Component, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IncidentService } from '../../../core/services/incident.service';
@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     selector: 'app-incident-create',
     imports: [ReactiveFormsModule, RouterLink],
     templateUrl: './incident-create.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './incident-create.component.scss'
 })
 export class IncidentCreateComponent {

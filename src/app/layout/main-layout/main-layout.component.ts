@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService, UserRole } from '../../core/services/auth.service';
 
@@ -7,6 +7,7 @@ import { AuthService, UserRole } from '../../core/services/auth.service';
     selector: 'app-main-layout',
     imports: [RouterOutlet, RouterLink, RouterLinkActive],
     templateUrl: './main-layout.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './main-layout.component.scss'
 })
 export class MainLayoutComponent {

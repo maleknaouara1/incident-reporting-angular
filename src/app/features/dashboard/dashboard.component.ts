@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IncidentService } from '../../core/services/incident.service';
 import { IncidentDto, IncidentStatus, IncidentPriority } from '../../core/models/incident.model';
@@ -10,6 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
     selector: 'app-dashboard',
     imports: [],
     templateUrl: './dashboard.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
