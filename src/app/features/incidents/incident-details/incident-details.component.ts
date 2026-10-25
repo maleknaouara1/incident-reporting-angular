@@ -136,7 +136,6 @@ export class IncidentDetailsComponent implements OnInit {
           } else {
             this.pageErrorMessage = err.error?.message || 'An unexpected error occurred while loading the incident.';
           }
-          console.error('Failed to load incident', err);
         }
       });
   }
@@ -168,7 +167,6 @@ export class IncidentDetailsComponent implements OnInit {
           } else {
             this.timelineErrorMessage = err.error?.message || 'Failed to load activity log.';
           }
-          console.error('Failed to load timeline', err);
         }
       });
   }

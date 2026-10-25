@@ -15,6 +15,14 @@ export const authGuard: CanActivateFn = (route, state) => {
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
+// Keeps signed-in users away from the login/register pages
+export const guestGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  return authService.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
+};
+
 // Restricts a route to the given roles; use after authGuard, e.g. canActivate: [roleGuard(UserRole.Admin)]
 export const roleGuard = (...allowedRoles: UserRole[]): CanActivateFn => () => {
   const authService = inject(AuthService);

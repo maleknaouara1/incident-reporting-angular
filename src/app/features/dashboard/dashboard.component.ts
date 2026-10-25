@@ -57,7 +57,6 @@ export class DashboardComponent implements OnInit {
           } else {
             this.errorMessage = err.error?.message || 'An error occurred while loading metrics.';
           }
-          console.error('Failed to load dashboard metrics', err);
         }
       });
   }

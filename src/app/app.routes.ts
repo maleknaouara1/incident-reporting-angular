@@ -5,7 +5,7 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { IncidentsComponent } from './features/incidents/incidents.component';
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard, guestGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // Public auth routes (Login, Register) using AuthLayout
@@ -14,8 +14,8 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     children: [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
-      { path: 'login', component: LoginComponent },
-      { path: 'register', component: RegisterComponent }
+      { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
+      { path: 'register', component: RegisterComponent, canActivate: [guestGuard] }
     ]
   },
   // Protected features (Dashboard, Incidents) using MainLayout & AuthGuard

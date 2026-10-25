@@ -70,7 +70,6 @@ export class IncidentsComponent implements OnInit {
           } else {
             this.errorMessage = err.error?.message || 'An unexpected error occurred while loading incidents.';
           }
-          console.error('Failed to load incidents', err);
         }
       });
   }

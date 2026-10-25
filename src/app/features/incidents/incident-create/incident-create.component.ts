@@ -102,7 +102,6 @@ export class IncidentCreateComponent {
           } else {
             this.errorMessage = err.error?.message || 'An unexpected error occurred during incident creation.';
           }
-          console.error('Incident creation failed', err);
         }
       });
   }

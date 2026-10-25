@@ -18,6 +18,9 @@
     <div *ngIf="registerForm.get('name')?.touched && registerForm.get('name')?.invalid" class="validation-error">
       Full name is required (min 2 characters).
     </div>
+    <div *ngIf="validationErrors['name']" class="validation-error">
+      {{ validationErrors['name'] }}
+    </div>
   </div>
 
   <div class="form-group">
@@ -48,6 +51,9 @@
     />
     <div *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid" class="validation-error">
       Password must be at least 6 characters.
+    </div>
+    <div *ngIf="validationErrors['password']" class="validation-error">
+      {{ validationErrors['password'] }}
     </div>
   </div>
 

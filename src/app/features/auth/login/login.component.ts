@@ -64,7 +64,6 @@ export class LoginComponent {
           } else {
             this.errorMessage = 'Could not connect to the authentication server. Please verify the backend is running.';
           }
-          console.error('Login error:', err);
         }
       });
     } else {

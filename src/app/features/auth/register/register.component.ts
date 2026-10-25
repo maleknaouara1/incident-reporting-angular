@@ -67,7 +67,9 @@ export class RegisterComponent {
         if (err.status === 400 && err.error && typeof err.error.errors === 'object') {
           const rfcErrors = err.error.errors;
           Object.keys(rfcErrors).forEach(key => {
-            const fieldName = key.toLowerCase();
+            // The API reports "FullName", but the form control is "name"
+            const apiField = key.toLowerCase();
+            const fieldName = apiField === 'fullname' ? 'name' : apiField;
             const messages = rfcErrors[key];
             if (Array.isArray(messages)) {
               this.validationErrors[fieldName] = messages.join(' ');
@@ -81,7 +83,6 @@ export class RegisterComponent {
         } else {
           this.errorMessage = err.error?.message || 'An unexpected error occurred during registration.';
         }
-        console.error('Registration failed', err);
       }
     });
   }
