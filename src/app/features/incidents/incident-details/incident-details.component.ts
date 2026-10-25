@@ -15,11 +15,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
-  selector: 'app-incident-details',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './incident-details.component.html',
-  styleUrl: './incident-details.component.scss'
+    selector: 'app-incident-details',
+    imports: [CommonModule, RouterLink],
+    templateUrl: './incident-details.component.html',
+    styleUrl: './incident-details.component.scss'
 })
 export class IncidentDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);

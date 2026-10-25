@@ -8,11 +8,10 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
-  selector: 'app-incidents',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './incidents.component.html',
-  styleUrl: './incidents.component.scss'
+    selector: 'app-incidents',
+    imports: [CommonModule, RouterLink],
+    templateUrl: './incidents.component.html',
+    styleUrl: './incidents.component.scss'
 })
 export class IncidentsComponent implements OnInit {
   private incidentService = inject(IncidentService);

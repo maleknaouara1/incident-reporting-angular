@@ -8,11 +8,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
-  selector: 'app-incident-create',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './incident-create.component.html',
-  styleUrl: './incident-create.component.scss'
+    selector: 'app-incident-create',
+    imports: [CommonModule, ReactiveFormsModule, RouterLink],
+    templateUrl: './incident-create.component.html',
+    styleUrl: './incident-create.component.scss'
 })
 export class IncidentCreateComponent {
   private fb = inject(FormBuilder);
