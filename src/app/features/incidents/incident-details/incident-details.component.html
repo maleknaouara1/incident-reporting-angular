@@ -164,7 +164,7 @@
       </section>
 
       <!-- Activity Timeline card -->
-      <section class="details-card timeline-card">
+      <section *ngIf="canViewTimeline" class="details-card timeline-card">
         <div class="card-header border">
           <h2>⏱️ Audit history log</h2>
         </div>

@@ -94,6 +94,12 @@
   align-items: center;
   gap: 1rem;
 
+  .user-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #334155;
+  }
+
   .user-badge {
     background-color: #eff6ff;
     color: #2563eb;

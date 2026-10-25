@@ -98,7 +98,7 @@ export class IncidentCreateComponent {
           } else if (err.status === 0) {
             this.errorMessage = 'Could not connect to the backend server. Please verify the API is running.';
           } else if (err.status === 403) {
-            this.errorMessage = 'You do not have permission to file incidents. Requires Admin or Engineer role.';
+            this.errorMessage = 'You do not have permission to file incidents. Please sign in again or contact an administrator.';
           } else {
             this.errorMessage = err.error?.message || 'An unexpected error occurred during incident creation.';
           }

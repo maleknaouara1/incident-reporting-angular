@@ -1,0 +1,97 @@
+<div class="create-header">
+  <div class="title-section">
+    <a routerLink="/incidents" class="back-link">← Back to Incidents</a>
+    <h1>File New Incident</h1>
+    <p>Describe the problem. The AI assistant will analyze it and suggest a resolution once it is submitted.</p>
+  </div>
+</div>
+
+<form [formGroup]="incidentForm" (ngSubmit)="onSubmit()" class="incident-form" novalidate>
+  <div *ngIf="errorMessage" class="error-banner">
+    {{ errorMessage }}
+  </div>
+  <div *ngIf="successMessage" class="success-banner">
+    {{ successMessage }}
+  </div>
+
+  <div class="form-group">
+    <label for="title">Title <span class="required">*</span></label>
+    <input
+      type="text"
+      id="title"
+      formControlName="title"
+      placeholder="e.g. Payment API returns 500 errors"
+      class="form-control"
+      maxlength="200"
+    />
+    <div class="field-meta">
+      <span>A short, specific summary of the issue.</span>
+      <span>{{ incidentForm.get('title')?.value?.length || 0 }}/200</span>
+    </div>
+    <div *ngIf="incidentForm.get('title')?.touched && incidentForm.get('title')?.hasError('required')" class="validation-error">
+      Title is required.
+    </div>
+    <div *ngIf="validationErrors['title']" class="validation-error">
+      {{ validationErrors['title'] }}
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="category">Category <span class="required">*</span></label>
+      <select id="category" formControlName="category" class="form-control">
+        <option value="" disabled>Select a category</option>
+        <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+      </select>
+      <div *ngIf="incidentForm.get('category')?.touched && incidentForm.get('category')?.invalid" class="validation-error">
+        Please choose a category.
+      </div>
+      <div *ngIf="validationErrors['category']" class="validation-error">
+        {{ validationErrors['category'] }}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="priority">Priority <span class="required">*</span></label>
+      <select id="priority" formControlName="priority" class="form-control">
+        <option value="" disabled>Select a priority</option>
+        <option *ngFor="let p of priorities" [value]="p.value">{{ p.label }}</option>
+      </select>
+      <div *ngIf="incidentForm.get('priority')?.touched && incidentForm.get('priority')?.invalid" class="validation-error">
+        Please choose a priority.
+      </div>
+      <div *ngIf="validationErrors['priority']" class="validation-error">
+        {{ validationErrors['priority'] }}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="description">Description <span class="required">*</span></label>
+    <textarea
+      id="description"
+      formControlName="description"
+      rows="8"
+      placeholder="What happened? When did it start? Who or what is affected? Include error messages and steps to reproduce."
+      class="form-control"
+      maxlength="4000"
+    ></textarea>
+    <div class="field-meta">
+      <span>More detail gives a better AI analysis.</span>
+      <span>{{ incidentForm.get('description')?.value?.length || 0 }}/4000</span>
+    </div>
+    <div *ngIf="incidentForm.get('description')?.touched && incidentForm.get('description')?.hasError('required')" class="validation-error">
+      Description is required.
+    </div>
+    <div *ngIf="validationErrors['description']" class="validation-error">
+      {{ validationErrors['description'] }}
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a routerLink="/incidents" class="cancel-btn">Cancel</a>
+    <button type="submit" class="submit-btn" [disabled]="incidentForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Submitting & analyzing...' : 'Submit Incident' }}
+    </button>
+  </div>
+</form>

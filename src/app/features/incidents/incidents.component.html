@@ -1,7 +1,7 @@
 <div class="incidents-header">
   <div class="title-section">
-    <h1>System Incidents</h1>
-    <p>View, assign, and analyze active incident tickets.</p>
+    <h1>{{ isStaff ? 'System Incidents' : 'My Incidents' }}</h1>
+    <p>{{ isStaff ? 'View, assign, and analyze active incident tickets.' : 'Track the status of incidents you have reported.' }}</p>
   </div>
   <a routerLink="/incidents/create" class="create-btn">+ File New Incident</a>
 </div>
@@ -27,7 +27,8 @@
   <div class="empty-card">
     <span class="empty-icon">📂</span>
     <h3>No Incidents Found</h3>
-    <p>All clear! There are no incidents currently registered in the database.</p>
+    <p *ngIf="isStaff">All clear! There are no incidents currently registered in the database.</p>
+    <p *ngIf="!isStaff">You haven't reported any incidents yet. Use "File New Incident" to report a problem.</p>
   </div>
 </div>
 

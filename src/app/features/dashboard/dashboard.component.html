@@ -1,6 +1,6 @@
 <div class="dashboard-header">
   <h1>Dashboard Overview</h1>
-  <p>Real-time telemetry and incident intelligence metrics.</p>
+  <p>{{ isStaff ? 'Real-time telemetry and incident intelligence metrics.' : 'Metrics for the incidents you have reported.' }}</p>
 </div>
 
 <!-- Loading state -->
@@ -59,7 +59,7 @@
 </div>
 
 <div class="welcome-box">
-  <h2>Welcome to the AI Incident Reporting Admin Panel</h2>
+  <h2>Welcome to the AI Incident Reporting System</h2>
   <p>
     Use this system to triage incoming system alerts, execute AI analysis on telemetry, track workflow resolution milestones, and integrate directly with n8n automated response playbooks.
   </p>

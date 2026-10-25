@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -16,14 +16,23 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   loginForm: FormGroup = this.fb.group({
-    email: ['john@test.com', [Validators.required, Validators.email]],
-    password: ['Password123!', [Validators.required, Validators.minLength(6)]]
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  errorMessage: string = '';
+  errorMessage: string = this.route.snapshot.queryParamMap.get('reason') === 'expired'
+    ? 'Your session has expired. Please sign in again.'
+    : '';
   isLoading: boolean = false;
+
+  // Only allow in-app paths so the redirect can't be pointed at another site
+  private get returnUrl(): string {
+    const url = this.route.snapshot.queryParamMap.get('returnUrl');
+    return url && url.startsWith('/') && !url.startsWith('//') ? url : '/dashboard';
+  }
 
   onSubmit(): void {
     if (this.loginForm.valid) {
@@ -34,7 +43,7 @@ export class LoginComponent {
         next: (response) => {
           this.isLoading = false;
           if (response.success) {
-            this.router.navigate(['/dashboard']);
+            this.router.navigateByUrl(this.returnUrl);
           } else {
             this.errorMessage = response.message || 'Login failed. Please check your credentials.';
             if (response.errors && response.errors.length > 0) {

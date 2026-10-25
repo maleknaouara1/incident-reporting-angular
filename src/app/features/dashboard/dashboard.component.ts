@@ -4,6 +4,7 @@ import { IncidentService } from '../../core/services/incident.service';
 import { IncidentDto, IncidentStatus, IncidentPriority } from '../../core/models/incident.model';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,6 +16,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class DashboardComponent implements OnInit {
   private incidentService = inject(IncidentService);
   private destroyRef = inject(DestroyRef);
+
+  readonly isStaff = inject(AuthService).isStaff();
 
   totalIncidents: number = 0;
   inProgressIncidents: number = 0;
@@ -38,8 +41,8 @@ export class DashboardComponent implements OnInit {
         next: (response) => {
           this.isLoading = false;
           if (response.success && response.data) {
-            const incidents = response.data;
-            this.totalIncidents = incidents.length;
+            const incidents = response.data.items;
+            this.totalIncidents = response.data.totalCount;
             this.openIncidents = incidents.filter(i => i.status === IncidentStatus.New).length;
             this.inProgressIncidents = incidents.filter(i => i.status === IncidentStatus.InProgress).length;
             this.criticalIncidents = incidents.filter(i => i.priority === IncidentPriority.Critical).length;

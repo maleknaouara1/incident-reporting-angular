@@ -2,6 +2,9 @@
   <div *ngIf="errorMessage" class="error-banner">
     {{ errorMessage }}
   </div>
+  <div *ngIf="successMessage" class="success-banner">
+    {{ successMessage }}
+  </div>
 
   <div class="form-group">
     <label for="name">Full Name</label>
@@ -28,6 +31,9 @@
     />
     <div *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="validation-error">
       Please enter a valid email address.
+    </div>
+    <div *ngIf="validationErrors['email']" class="validation-error">
+      {{ validationErrors['email'] }}
     </div>
   </div>
 
@@ -59,8 +65,8 @@
     </div>
   </div>
 
-  <button type="submit" class="submit-btn" [disabled]="registerForm.invalid">
-    Create Account
+  <button type="submit" class="submit-btn" [disabled]="registerForm.invalid || isSubmitting">
+    {{ isSubmitting ? 'Creating account...' : 'Create Account' }}
   </button>
 
   <p class="auth-redirect">

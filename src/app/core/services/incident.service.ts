@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { ApiResponse } from '../models/api-response.model';
+import { ApiResponse, PagedResult } from '../models/api-response.model';
 import { IncidentDto, IncidentHistoryDto, CreateIncidentRequest } from '../models/incident.model';
 
 @Injectable({
@@ -11,8 +11,12 @@ import { IncidentDto, IncidentHistoryDto, CreateIncidentRequest } from '../model
 export class IncidentService {
   private http = inject(HttpClient);
 
-  getAll(): Observable<ApiResponse<IncidentDto[]>> {
-    return this.http.get<ApiResponse<IncidentDto[]>>(`${API_BASE_URL}/api/incidents`);
+  // The API pages results (max 100 per page); Reporters only receive their own incidents.
+  getAll(pageNumber = 1, pageSize = 100): Observable<ApiResponse<PagedResult<IncidentDto>>> {
+    const params = new HttpParams()
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+    return this.http.get<ApiResponse<PagedResult<IncidentDto>>>(`${API_BASE_URL}/api/incidents`, { params });
   }
 
   getById(id: string): Observable<ApiResponse<IncidentDto>> {

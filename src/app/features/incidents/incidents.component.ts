@@ -5,6 +5,7 @@ import { IncidentDto, IncidentPriority, IncidentStatus } from '../../core/models
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-incidents',
@@ -16,6 +17,9 @@ import { RouterLink } from '@angular/router';
 export class IncidentsComponent implements OnInit {
   private incidentService = inject(IncidentService);
   private destroyRef = inject(DestroyRef);
+
+  // Reporters only receive their own incidents from the API
+  readonly isStaff = inject(AuthService).isStaff();
 
   incidents: IncidentDto[] = [];
   isLoading: boolean = false;
@@ -50,7 +54,7 @@ export class IncidentsComponent implements OnInit {
         next: (response) => {
           this.isLoading = false;
           if (response.success && response.data) {
-            this.incidents = response.data;
+            this.incidents = response.data.items;
           } else {
             this.errorMessage = response.message || 'Failed to load incidents.';
           }

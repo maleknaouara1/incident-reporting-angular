@@ -12,6 +12,7 @@ import {
 } from '../../../core/models/incident.model';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-incident-details',
@@ -25,6 +26,9 @@ export class IncidentDetailsComponent implements OnInit {
   private router = inject(Router);
   private incidentService = inject(IncidentService);
   private destroyRef = inject(DestroyRef);
+
+  // The audit timeline API is restricted to Admin/Engineer
+  readonly canViewTimeline = inject(AuthService).isStaff();
 
   incident: IncidentDto | null = null;
   timeline: IncidentHistoryDto[] = [];
@@ -97,7 +101,9 @@ export class IncidentDetailsComponent implements OnInit {
 
     this.isNotFound = false;
     this.loadIncident(this.incidentId);
-    this.loadTimeline(this.incidentId);
+    if (this.canViewTimeline) {
+      this.loadTimeline(this.incidentId);
+    }
   }
 
   loadIncident(id: string): void {
