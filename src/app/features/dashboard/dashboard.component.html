@@ -4,59 +4,62 @@
 </div>
 
 <!-- Loading state -->
-<div *ngIf="isLoading" class="loading-container">
-  <div class="spinner"></div>
-  <p>Calculating telemetry metrics...</p>
-</div>
+@if (isLoading) {
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>Calculating telemetry metrics...</p>
+  </div>
+}
 
 <!-- Error state -->
-<div *ngIf="!isLoading && errorMessage" class="error-container">
-  <div class="error-card">
-    <span class="error-icon">⚠️</span>
-    <h3>Metric Telemetry Failure</h3>
-    <p>{{ errorMessage }}</p>
-    <button class="retry-btn" (click)="retry()">Retry Request</button>
+@if (!isLoading && errorMessage) {
+  <div class="error-container">
+    <div class="error-card">
+      <span class="error-icon">⚠️</span>
+      <h3>Metric Telemetry Failure</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="retry-btn" (click)="retry()">Retry Request</button>
+    </div>
   </div>
-</div>
+}
 
 <!-- Data grid state -->
-<div *ngIf="!isLoading && !errorMessage" class="stats-grid">
-  <!-- Total -->
-  <div class="stat-card">
-    <div class="stat-icon total">📊</div>
-    <div class="stat-info">
-      <h3>Total Incidents</h3>
-      <p class="stat-value">{{ totalIncidents }}</p>
+@if (!isLoading && !errorMessage) {
+  <div class="stats-grid">
+    <!-- Total -->
+    <div class="stat-card">
+      <div class="stat-icon total">📊</div>
+      <div class="stat-info">
+        <h3>Total Incidents</h3>
+        <p class="stat-value">{{ totalIncidents }}</p>
+      </div>
+    </div>
+    <!-- Open -->
+    <div class="stat-card">
+      <div class="stat-icon open">🚨</div>
+      <div class="stat-info">
+        <h3>Open</h3>
+        <p class="stat-value">{{ openIncidents }}</p>
+      </div>
+    </div>
+    <!-- In Progress -->
+    <div class="stat-card">
+      <div class="stat-icon progress">⚙️</div>
+      <div class="stat-info">
+        <h3>In Progress</h3>
+        <p class="stat-value">{{ inProgressIncidents }}</p>
+      </div>
+    </div>
+    <!-- Critical -->
+    <div class="stat-card critical-card">
+      <div class="stat-icon critical">⚠️</div>
+      <div class="stat-info">
+        <h3>Critical</h3>
+        <p class="stat-value">{{ criticalIncidents }}</p>
+      </div>
     </div>
   </div>
-
-  <!-- Open -->
-  <div class="stat-card">
-    <div class="stat-icon open">🚨</div>
-    <div class="stat-info">
-      <h3>Open</h3>
-      <p class="stat-value">{{ openIncidents }}</p>
-    </div>
-  </div>
-
-  <!-- In Progress -->
-  <div class="stat-card">
-    <div class="stat-icon progress">⚙️</div>
-    <div class="stat-info">
-      <h3>In Progress</h3>
-      <p class="stat-value">{{ inProgressIncidents }}</p>
-    </div>
-  </div>
-
-  <!-- Critical -->
-  <div class="stat-card critical-card">
-    <div class="stat-icon critical">⚠️</div>
-    <div class="stat-info">
-      <h3>Critical</h3>
-      <p class="stat-value">{{ criticalIncidents }}</p>
-    </div>
-  </div>
-</div>
+}
 
 <div class="welcome-box">
   <h2>Welcome to the AI Incident Reporting System</h2>

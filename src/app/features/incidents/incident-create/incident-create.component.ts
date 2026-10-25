@@ -3,13 +3,13 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { IncidentService } from '../../../core/services/incident.service';
 import { IncidentCategory, IncidentPriority, CreateIncidentRequest } from '../../../core/models/incident.model';
-import { CommonModule } from '@angular/common';
+
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-incident-create',
-    imports: [CommonModule, ReactiveFormsModule, RouterLink],
+    imports: [ReactiveFormsModule, RouterLink],
     templateUrl: './incident-create.component.html',
     styleUrl: './incident-create.component.scss'
 })

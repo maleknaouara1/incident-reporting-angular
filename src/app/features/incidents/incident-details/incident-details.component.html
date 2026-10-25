@@ -7,205 +7,233 @@
   </div>
 
   <!-- Loading State (Incident Details) -->
-  <div *ngIf="isLoadingIncident" class="loading-state">
-    <div class="spinner"></div>
-    <p>Retrieving incident details...</p>
-  </div>
+  @if (isLoadingIncident) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Retrieving incident details...</p>
+    </div>
+  }
 
   <!-- Not Found State -->
-  <div *ngIf="!isLoadingIncident && isNotFound" class="error-state">
-    <div class="state-card not-found-card">
-      <span class="icon">🔍</span>
-      <h2>Incident Not Found</h2>
-      <p>{{ pageErrorMessage || 'No incident exists with the specified identifier.' }}</p>
-      <a routerLink="/incidents" class="action-btn">Back to Incident List</a>
+  @if (!isLoadingIncident && isNotFound) {
+    <div class="error-state">
+      <div class="state-card not-found-card">
+        <span class="icon">🔍</span>
+        <h2>Incident Not Found</h2>
+        <p>{{ pageErrorMessage || 'No incident exists with the specified identifier.' }}</p>
+        <a routerLink="/incidents" class="action-btn">Back to Incident List</a>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Error State (Other Connection Failures) -->
-  <div *ngIf="!isLoadingIncident && pageErrorMessage && !isNotFound" class="error-state">
-    <div class="state-card error-card">
-      <span class="icon">⚠️</span>
-      <h2>Telemetry Extraction Failure</h2>
-      <p>{{ pageErrorMessage }}</p>
-      <button class="retry-btn" (click)="retry()">Retry Request</button>
+  @if (!isLoadingIncident && pageErrorMessage && !isNotFound) {
+    <div class="error-state">
+      <div class="state-card error-card">
+        <span class="icon">⚠️</span>
+        <h2>Telemetry Extraction Failure</h2>
+        <p>{{ pageErrorMessage }}</p>
+        <button class="retry-btn" (click)="retry()">Retry Request</button>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Main Grid view (Only when incident is loaded) -->
-  <div *ngIf="!isLoadingIncident && !pageErrorMessage && incident" class="details-grid">
-    
-    <!-- Left Column: Core Info & AI Analysis -->
-    <div class="grid-column-left">
-      
-      <!-- Incident summary card -->
-      <section class="details-card summary-card">
-        <div class="card-header">
-          <div class="badge-row">
-            <span class="badge" [ngClass]="getSeverityClass(incident.priority)">
-              {{ getPriorityLabel(incident.priority) }}
-            </span>
-            <span class="badge" [ngClass]="getStatusClass(incident.status)">
-              {{ getStatusLabel(incident.status) }}
-            </span>
-          </div>
-          <h1 class="incident-title">{{ incident.title }}</h1>
-          <p class="incident-id">Ticket ID: {{ incident.id }}</p>
-        </div>
-        <div class="card-body">
-          <h3>Description</h3>
-          <p class="incident-desc">{{ incident.description }}</p>
-        </div>
-      </section>
-
-      <!-- AI Analysis card -->
-      <section class="details-card ai-card">
-        <div class="card-header border">
-          <h2>🤖 AI Telemetry Analysis</h2>
-        </div>
-        <div class="card-body">
-          <div *ngIf="incident.aiSummary || incident.aiSuggestedResolution; else noAi">
-            <div class="ai-group" *ngIf="incident.aiSummary">
-              <h3>Incident Summary</h3>
-              <p class="ai-text">{{ incident.aiSummary }}</p>
+  @if (!isLoadingIncident && !pageErrorMessage && incident) {
+    <div class="details-grid">
+      <!-- Left Column: Core Info & AI Analysis -->
+      <div class="grid-column-left">
+        <!-- Incident summary card -->
+        <section class="details-card summary-card">
+          <div class="card-header">
+            <div class="badge-row">
+              <span class="badge" [ngClass]="getSeverityClass(incident.priority)">
+                {{ getPriorityLabel(incident.priority) }}
+              </span>
+              <span class="badge" [ngClass]="getStatusClass(incident.status)">
+                {{ getStatusLabel(incident.status) }}
+              </span>
             </div>
-            
-            <div class="ai-group" *ngIf="incident.aiSuggestedResolution">
-              <h3>Suggested Resolution & Category</h3>
-              <p class="ai-text">{{ incident.aiSuggestedResolution }}</p>
-            </div>
-
-            <div class="ai-group" *ngIf="incident.aiConfidenceScore !== null">
-              <h3>Confidence Assessment</h3>
-              <div class="confidence-bar-wrapper">
-                <div class="confidence-bar" [style.width.%]="incident.aiConfidenceScore * 100"></div>
-                <span class="confidence-val">{{ incident.aiConfidenceScore | percent:'1.0-1' }} Confidence</span>
-              </div>
-            </div>
+            <h1 class="incident-title">{{ incident.title }}</h1>
+            <p class="incident-id">Ticket ID: {{ incident.id }}</p>
           </div>
-          <ng-template #noAi>
-            <p class="fallback-text">No AI analysis available</p>
-          </ng-template>
-        </div>
-      </section>
-
-      <!-- Comments Section -->
-      <section class="details-card comments-card">
-        <div class="card-header border">
-          <h2>💬 Discussion log</h2>
-        </div>
-        <div class="card-body">
-          <div *ngIf="incident.comments && incident.comments.length > 0; else noComments" class="comments-list">
-            <div *ngFor="let comment of incident.comments" class="comment-item">
-              <div class="comment-meta">
-                <span class="comment-author">User: {{ comment.authorUserId }}</span>
-                <span class="comment-date">{{ comment.createdAtUtc | date:'short' }}</span>
-              </div>
-              <p class="comment-message">{{ comment.message }}</p>
-            </div>
+          <div class="card-body">
+            <h3>Description</h3>
+            <p class="incident-desc">{{ incident.description }}</p>
           </div>
-          <ng-template #noComments>
-            <p class="fallback-text">No comments available</p>
-          </ng-template>
-        </div>
-      </section>
-    </div>
-
-    <!-- Right Column: Meta details & Activity Timeline -->
-    <div class="grid-column-right">
-      
-      <!-- MetaDetails card -->
-      <section class="details-card meta-card">
-        <div class="card-header border">
-          <h2>📋 Metadata Shell</h2>
-        </div>
-        <div class="card-body">
-          <div class="meta-row">
-            <span class="meta-label">Category:</span>
-            <span class="meta-value">{{ getCategoryLabel(incident.category) }}</span>
+        </section>
+        <!-- AI Analysis card -->
+        <section class="details-card ai-card">
+          <div class="card-header border">
+            <h2>🤖 AI Telemetry Analysis</h2>
           </div>
-          <div class="meta-row">
-            <span class="meta-label">Reporter ID:</span>
-            <span class="meta-value copyable">{{ incident.createdByUserId }}</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Assigned Engineer:</span>
-            <span class="meta-value copyable" *ngIf="incident.assignedToUserId; else notAssigned">
-              {{ incident.assignedToUserId }}
-            </span>
-            <ng-template #notAssigned>
-              <span class="fallback-text">Not assigned</span>
-            </ng-template>
-          </div>
-          <hr class="divider" />
-          <div class="meta-row">
-            <span class="meta-label">Created Date:</span>
-            <span class="meta-value">{{ incident.createdAtUtc | date:'medium' }}</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Last Update:</span>
-            <span class="meta-value" *ngIf="incident.updatedAtUtc; else noUpdate">
-              {{ incident.updatedAtUtc | date:'medium' }}
-            </span>
-            <ng-template #noUpdate>
-              <span class="fallback-text">No updates recorded</span>
-            </ng-template>
-          </div>
-          <div class="meta-row">
-            <span class="meta-label">Resolved Date:</span>
-            <span class="meta-value" *ngIf="incident.resolvedAtUtc; else notResolved">
-              {{ incident.resolvedAtUtc | date:'medium' }}
-            </span>
-            <ng-template #notResolved>
-              <span class="fallback-text">Not resolved</span>
-            </ng-template>
-          </div>
-        </div>
-      </section>
-
-      <!-- Activity Timeline card -->
-      <section *ngIf="canViewTimeline" class="details-card timeline-card">
-        <div class="card-header border">
-          <h2>⏱️ Audit history log</h2>
-        </div>
-        <div class="card-body">
-          <!-- Timeline Loader -->
-          <div *ngIf="isLoadingTimeline" class="timeline-loading">
-            <div class="spinner small"></div>
-            <p>Fetching timeline log...</p>
-          </div>
-
-          <!-- Timeline Error -->
-          <div *ngIf="!isLoadingTimeline && timelineErrorMessage" class="timeline-error">
-            <p class="error-text">⚠️ {{ timelineErrorMessage }}</p>
-            <button class="retry-timeline-btn" (click)="retryTimeline()">Retry</button>
-          </div>
-
-          <!-- Timeline entries -->
-          <div *ngIf="!isLoadingTimeline && !timelineErrorMessage">
-            <div *ngIf="timeline && timeline.length > 0; else noTimeline" class="timeline-trail">
-              <div *ngFor="let item of timeline" class="timeline-node">
-                <div class="node-marker" [ngClass]="getActionClass(item.action)"></div>
-                <div class="node-content">
-                  <div class="node-header">
-                    <span class="node-action">{{ getActionLabel(item.action) }}</span>
-                    <span class="node-date">{{ item.createdAtUtc | date:'short' }}</span>
+          <div class="card-body">
+            @if (incident.aiSummary || incident.aiSuggestedResolution) {
+              <div>
+                @if (incident.aiSummary) {
+                  <div class="ai-group">
+                    <h3>Incident Summary</h3>
+                    <p class="ai-text">{{ incident.aiSummary }}</p>
                   </div>
-                  <p class="node-desc" *ngIf="item.description">{{ item.description }}</p>
-                  <div class="node-diff" *ngIf="item.oldValue || item.newValue">
-                    <span class="diff-tag old" *ngIf="item.oldValue">Was: {{ item.oldValue }}</span>
-                    <span class="diff-tag new" *ngIf="item.newValue">Now: {{ item.newValue }}</span>
+                }
+                @if (incident.aiSuggestedResolution) {
+                  <div class="ai-group">
+                    <h3>Suggested Resolution & Category</h3>
+                    <p class="ai-text">{{ incident.aiSuggestedResolution }}</p>
                   </div>
+                }
+                @if (incident.aiConfidenceScore !== null) {
+                  <div class="ai-group">
+                    <h3>Confidence Assessment</h3>
+                    <div class="confidence-bar-wrapper">
+                      <div class="confidence-bar" [style.width.%]="incident.aiConfidenceScore * 100"></div>
+                      <span class="confidence-val">{{ incident.aiConfidenceScore | percent:'1.0-1' }} Confidence</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="fallback-text">No AI analysis available</p>
+            }
+          </div>
+        </section>
+        <!-- Comments Section -->
+        <section class="details-card comments-card">
+          <div class="card-header border">
+            <h2>💬 Discussion log</h2>
+          </div>
+          <div class="card-body">
+            @if (incident.comments && incident.comments.length > 0) {
+              <div class="comments-list">
+                @for (comment of incident.comments; track comment) {
+                  <div class="comment-item">
+                    <div class="comment-meta">
+                      <span class="comment-author">User: {{ comment.authorUserId }}</span>
+                      <span class="comment-date">{{ comment.createdAtUtc | date:'short' }}</span>
+                    </div>
+                    <p class="comment-message">{{ comment.message }}</p>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="fallback-text">No comments available</p>
+            }
+          </div>
+        </section>
+      </div>
+      <!-- Right Column: Meta details & Activity Timeline -->
+      <div class="grid-column-right">
+        <!-- MetaDetails card -->
+        <section class="details-card meta-card">
+          <div class="card-header border">
+            <h2>📋 Metadata Shell</h2>
+          </div>
+          <div class="card-body">
+            <div class="meta-row">
+              <span class="meta-label">Category:</span>
+              <span class="meta-value">{{ getCategoryLabel(incident.category) }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Reporter ID:</span>
+              <span class="meta-value copyable">{{ incident.createdByUserId }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Assigned Engineer:</span>
+              @if (incident.assignedToUserId) {
+                <span class="meta-value copyable">
+                  {{ incident.assignedToUserId }}
+                </span>
+              } @else {
+                <span class="fallback-text">Not assigned</span>
+              }
+            </div>
+            <hr class="divider" />
+            <div class="meta-row">
+              <span class="meta-label">Created Date:</span>
+              <span class="meta-value">{{ incident.createdAtUtc | date:'medium' }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Last Update:</span>
+              @if (incident.updatedAtUtc) {
+                <span class="meta-value">
+                  {{ incident.updatedAtUtc | date:'medium' }}
+                </span>
+              } @else {
+                <span class="fallback-text">No updates recorded</span>
+              }
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Resolved Date:</span>
+              @if (incident.resolvedAtUtc) {
+                <span class="meta-value">
+                  {{ incident.resolvedAtUtc | date:'medium' }}
+                </span>
+              } @else {
+                <span class="fallback-text">Not resolved</span>
+              }
+            </div>
+          </div>
+        </section>
+        <!-- Activity Timeline card -->
+        @if (canViewTimeline) {
+          <section class="details-card timeline-card">
+            <div class="card-header border">
+              <h2>⏱️ Audit history log</h2>
+            </div>
+            <div class="card-body">
+              <!-- Timeline Loader -->
+              @if (isLoadingTimeline) {
+                <div class="timeline-loading">
+                  <div class="spinner small"></div>
+                  <p>Fetching timeline log...</p>
                 </div>
-              </div>
+              }
+              <!-- Timeline Error -->
+              @if (!isLoadingTimeline && timelineErrorMessage) {
+                <div class="timeline-error">
+                  <p class="error-text">⚠️ {{ timelineErrorMessage }}</p>
+                  <button class="retry-timeline-btn" (click)="retryTimeline()">Retry</button>
+                </div>
+              }
+              <!-- Timeline entries -->
+              @if (!isLoadingTimeline && !timelineErrorMessage) {
+                <div>
+                  @if (timeline && timeline.length > 0) {
+                    <div class="timeline-trail">
+                      @for (item of timeline; track item) {
+                        <div class="timeline-node">
+                          <div class="node-marker" [ngClass]="getActionClass(item.action)"></div>
+                          <div class="node-content">
+                            <div class="node-header">
+                              <span class="node-action">{{ getActionLabel(item.action) }}</span>
+                              <span class="node-date">{{ item.createdAtUtc | date:'short' }}</span>
+                            </div>
+                            @if (item.description) {
+                              <p class="node-desc">{{ item.description }}</p>
+                            }
+                            @if (item.oldValue || item.newValue) {
+                              <div class="node-diff">
+                                @if (item.oldValue) {
+                                  <span class="diff-tag old">Was: {{ item.oldValue }}</span>
+                                }
+                                @if (item.newValue) {
+                                  <span class="diff-tag new">Now: {{ item.newValue }}</span>
+                                }
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <p class="fallback-text">No timeline entries available</p>
+                  }
+                </div>
+              }
             </div>
-            <ng-template #noTimeline>
-              <p class="fallback-text">No timeline entries available</p>
-            </ng-template>
-          </div>
-        </div>
-      </section>
-
+          </section>
+        }
+      </div>
     </div>
-  </div>
+  }
 </div>

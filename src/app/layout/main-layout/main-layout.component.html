@@ -22,7 +22,9 @@
     <header class="header">
       <h2 class="page-title">AI Incident Reporting System</h2>
       <div class="user-profile">
-        <span *ngIf="userName" class="user-name">{{ userName }}</span>
+        @if (userName) {
+          <span class="user-name">{{ userName }}</span>
+        }
         <span class="user-badge">{{ roleLabel }}</span>
         <button class="logout-btn" (click)="onLogout()">Logout</button>
       </div>

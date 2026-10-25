@@ -2,13 +2,13 @@ import { Component, OnInit, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IncidentService } from '../../core/services/incident.service';
 import { IncidentDto, IncidentStatus, IncidentPriority } from '../../core/models/incident.model';
-import { CommonModule } from '@angular/common';
+
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss'
 })
