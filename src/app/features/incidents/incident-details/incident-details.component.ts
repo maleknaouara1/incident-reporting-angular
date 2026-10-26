@@ -8,15 +8,21 @@ import {
   IncidentPriority,
   IncidentStatus,
   IncidentCategory,
-  IncidentHistoryAction
+  IncidentHistoryAction,
+  PRIORITY_LABELS,
+  STATUS_LABELS,
+  CATEGORY_LABELS
 } from '../../../core/models/incident.model';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService, UserRole } from '../../../core/services/auth.service';
+import { UserService } from '../../../core/services/user.service';
+import { UserSummaryDto } from '../../../core/models/user.model';
+import { IncidentActionsComponent } from './incident-actions/incident-actions.component';
 
 @Component({
     selector: 'app-incident-details',
-    imports: [CommonModule, RouterLink],
+    imports: [CommonModule, RouterLink, IncidentActionsComponent],
     templateUrl: './incident-details.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './incident-details.component.scss'
@@ -27,8 +33,18 @@ export class IncidentDetailsComponent implements OnInit {
   private incidentService = inject(IncidentService);
   private destroyRef = inject(DestroyRef);
 
-  // The audit timeline API is restricted to Admin/Engineer
-  readonly canViewTimeline = inject(AuthService).isStaff();
+  private authService = inject(AuthService);
+  private userService = inject(UserService);
+
+  // Workflow actions and the audit timeline API are restricted to Admin/Engineer
+  readonly isStaff = this.authService.isStaff();
+  readonly canViewTimeline = this.isStaff;
+  private readonly isAdmin = this.authService.hasRole(UserRole.Admin);
+  private readonly currentUserId = this.authService.getUserId();
+
+  // Only Admins can list users; others see "You" or a short id
+  private userNames = new Map<string, string>();
+  assignees: UserSummaryDto[] = [];
 
   incident: IncidentDto | null = null;
   timeline: IncidentHistoryDto[] = [];
@@ -42,31 +58,6 @@ export class IncidentDetailsComponent implements OnInit {
 
   incidentId: string | null = null;
 
-  readonly priorityLabels: Record<IncidentPriority, string> = {
-    [IncidentPriority.Low]: 'Low',
-    [IncidentPriority.Medium]: 'Medium',
-    [IncidentPriority.High]: 'High',
-    [IncidentPriority.Critical]: 'Critical'
-  };
-
-  readonly statusLabels: Record<IncidentStatus, string> = {
-    [IncidentStatus.New]: 'New',
-    [IncidentStatus.Assigned]: 'Assigned',
-    [IncidentStatus.InProgress]: 'In Progress',
-    [IncidentStatus.Resolved]: 'Resolved',
-    [IncidentStatus.Closed]: 'Closed'
-  };
-
-  readonly categoryLabels: Record<IncidentCategory, string> = {
-    [IncidentCategory.Infrastructure]: 'Infrastructure',
-    [IncidentCategory.Network]: 'Network',
-    [IncidentCategory.Security]: 'Security',
-    [IncidentCategory.Application]: 'Application',
-    [IncidentCategory.Database]: 'Database',
-    [IncidentCategory.Access]: 'Access',
-    [IncidentCategory.Other]: 'Other'
-  };
-
   readonly actionLabels: Record<IncidentHistoryAction, string> = {
     [IncidentHistoryAction.Created]: 'Incident Created',
     [IncidentHistoryAction.AiAnalysisGenerated]: 'AI Analysis Completed',
@@ -76,6 +67,9 @@ export class IncidentDetailsComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    if (this.isAdmin) {
+      this.loadUsers();
+    }
     this.route.paramMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(params => {
@@ -171,6 +165,39 @@ export class IncidentDetailsComponent implements OnInit {
       });
   }
 
+  private loadUsers(): void {
+    this.userService.getAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const users = response.data ?? [];
+          this.userNames = new Map(users.map(u => [u.id, u.fullName]));
+          this.assignees = users.filter(u => u.isActive && u.role !== UserRole.Reporter);
+        },
+        // Names are a nice-to-have; fall back to ids if the directory can't be loaded
+        error: () => {}
+      });
+  }
+
+  onIncidentChange(updated: IncidentDto): void {
+    this.incident = updated;
+    if (this.canViewTimeline) {
+      this.loadTimeline(updated.id);
+    }
+  }
+
+  userLabel(userId: string | null): string {
+    if (!userId) {
+      return '';
+    }
+    const name = this.userNames.get(userId);
+    const you = userId === this.currentUserId;
+    if (name) {
+      return you ? `${name} (you)` : name;
+    }
+    return you ? 'You' : `User #${userId.substring(0, 8)}`;
+  }
+
   retry(): void {
     if (this.incidentId) {
       this.validateAndLoad();
@@ -184,15 +211,15 @@ export class IncidentDetailsComponent implements OnInit {
   }
 
   getPriorityLabel(priority: IncidentPriority): string {
-    return this.priorityLabels[priority] || 'Unknown';
+    return PRIORITY_LABELS[priority] || 'Unknown';
   }
 
   getStatusLabel(status: IncidentStatus): string {
-    return this.statusLabels[status] || 'Unknown';
+    return STATUS_LABELS[status] || 'Unknown';
   }
 
   getCategoryLabel(category: IncidentCategory): string {
-    return this.categoryLabels[category] || 'Unknown';
+    return CATEGORY_LABELS[category] || 'Unknown';
   }
 
   getActionLabel(action: IncidentHistoryAction): string {

@@ -20,7 +20,14 @@ export class RegisterComponent {
   registerForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    // Mirrors the API's RegisterRequestValidator
+    password: ['', [
+      Validators.required,
+      Validators.minLength(8),
+      Validators.pattern(/[A-Z]/),
+      Validators.pattern(/[a-z]/),
+      Validators.pattern(/[0-9]/)
+    ]],
     confirmPassword: ['', [Validators.required]]
   }, {
     validators: this.passwordMatchValidator

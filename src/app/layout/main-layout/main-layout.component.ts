@@ -16,6 +16,7 @@ export class MainLayoutComponent {
 
   readonly roleLabel = UserRole[this.authService.getRole() ?? UserRole.Reporter];
   readonly userName = this.authService.getCurrentUser()?.fullName ?? '';
+  readonly isAdmin = this.authService.hasRole(UserRole.Admin);
 
   onLogout(): void {
     this.authService.logout();

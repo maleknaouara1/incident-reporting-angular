@@ -108,7 +108,7 @@
                 @for (comment of incident.comments; track comment) {
                   <div class="comment-item">
                     <div class="comment-meta">
-                      <span class="comment-author">User: {{ comment.authorUserId }}</span>
+                      <span class="comment-author">{{ userLabel(comment.authorUserId) }}</span>
                       <span class="comment-date">{{ comment.createdAtUtc | date:'short' }}</span>
                     </div>
                     <p class="comment-message">{{ comment.message }}</p>
@@ -123,10 +123,13 @@
       </div>
       <!-- Right Column: Meta details & Activity Timeline -->
       <div class="grid-column-right">
+        @if (isStaff) {
+          <app-incident-actions [incident]="incident" [assignees]="assignees" (incidentChange)="onIncidentChange($event)" />
+        }
         <!-- MetaDetails card -->
         <section class="details-card meta-card">
           <div class="card-header border">
-            <h2>📋 Metadata Shell</h2>
+            <h2>📋 Details</h2>
           </div>
           <div class="card-body">
             <div class="meta-row">
@@ -134,14 +137,14 @@
               <span class="meta-value">{{ getCategoryLabel(incident.category) }}</span>
             </div>
             <div class="meta-row">
-              <span class="meta-label">Reporter ID:</span>
-              <span class="meta-value copyable">{{ incident.createdByUserId }}</span>
+              <span class="meta-label">Reporter:</span>
+              <span class="meta-value" [title]="incident.createdByUserId">{{ userLabel(incident.createdByUserId) }}</span>
             </div>
             <div class="meta-row">
               <span class="meta-label">Assigned Engineer:</span>
               @if (incident.assignedToUserId) {
-                <span class="meta-value copyable">
-                  {{ incident.assignedToUserId }}
+                <span class="meta-value" [title]="incident.assignedToUserId">
+                  {{ userLabel(incident.assignedToUserId) }}
                 </span>
               } @else {
                 <span class="fallback-text">Not assigned</span>

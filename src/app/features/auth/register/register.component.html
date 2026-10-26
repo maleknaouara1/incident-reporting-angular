@@ -63,7 +63,7 @@
       />
     @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
       <div class="validation-error">
-        Password must be at least 6 characters.
+        Password must be at least 8 characters and include an uppercase letter, a lowercase letter and a digit.
       </div>
     }
     @if (validationErrors['password']) {

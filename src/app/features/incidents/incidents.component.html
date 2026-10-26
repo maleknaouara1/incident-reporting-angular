@@ -6,6 +6,51 @@
   <a routerLink="/incidents/create" class="create-btn">+ File New Incident</a>
 </div>
 
+<!-- Filters -->
+<form [formGroup]="filters" class="filter-bar" (ngSubmit)="applyFilters()">
+  <input
+    type="search"
+    formControlName="search"
+    class="filter-search"
+    placeholder="Search title or description..."
+    aria-label="Search incidents"
+  />
+  <select formControlName="status" (change)="applyFilters()" aria-label="Filter by status">
+    <option value="">All statuses</option>
+    @for (s of statusOptions; track s.value) {
+      <option [value]="s.value">{{ s.label }}</option>
+    }
+  </select>
+  <select formControlName="priority" (change)="applyFilters()" aria-label="Filter by priority">
+    <option value="">All priorities</option>
+    @for (p of priorityOptions; track p.value) {
+      <option [value]="p.value">{{ p.label }}</option>
+    }
+  </select>
+  <select formControlName="category" (change)="applyFilters()" aria-label="Filter by category">
+    <option value="">All categories</option>
+    @for (c of categoryOptions; track c.value) {
+      <option [value]="c.value">{{ c.label }}</option>
+    }
+  </select>
+  <select formControlName="sortBy" (change)="applyFilters()" aria-label="Sort by">
+    <option value="createdAtUtc">Newest first</option>
+    <option value="updatedAtUtc">Recently updated</option>
+    <option value="priority">Highest priority</option>
+    <option value="status">Status</option>
+    <option value="title">Title (A–Z)</option>
+  </select>
+  @if (isStaff) {
+    <label class="filter-mine">
+      <input type="checkbox" formControlName="mine" (change)="applyFilters()" />
+      Assigned to me
+    </label>
+  }
+  @if (hasActiveFilters) {
+    <button type="button" class="clear-btn" (click)="clearFilters()">Clear</button>
+  }
+</form>
+
 <!-- Loading state -->
 @if (isLoading) {
   <div class="loading-state">
@@ -32,10 +77,12 @@
     <div class="empty-card">
       <span class="empty-icon">📂</span>
       <h3>No Incidents Found</h3>
-      @if (isStaff) {
+      @if (hasActiveFilters) {
+        <p>No incident matches these filters.</p>
+        <button type="button" class="action-btn" (click)="clearFilters()">Clear filters</button>
+      } @else if (isStaff) {
         <p>All clear! There are no incidents currently registered in the database.</p>
-      }
-      @if (!isStaff) {
+      } @else {
         <p>You haven't reported any incidents yet. Use "File New Incident" to report a problem.</p>
       }
     </div>
@@ -57,7 +104,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (incident of incidents; track incident) {
+        @for (incident of incidents; track incident.id) {
           <tr>
             <td>#{{ incident.id.substring(0, 8) }}</td>
             <td class="incident-title">
@@ -83,4 +130,12 @@
       </tbody>
     </table>
   </div>
+
+  <nav class="pagination" aria-label="Incident pages">
+    <span class="page-info">{{ totalCount }} incident{{ totalCount === 1 ? '' : 's' }} · page {{ pageNumber }} of {{ totalPages }}</span>
+    <div class="page-buttons">
+      <button type="button" class="action-btn" [disabled]="pageNumber <= 1" (click)="goToPage(pageNumber - 1)">← Previous</button>
+      <button type="button" class="action-btn" [disabled]="pageNumber >= totalPages" (click)="goToPage(pageNumber + 1)">Next →</button>
+    </div>
+  </nav>
 }

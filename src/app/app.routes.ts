@@ -5,7 +5,8 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { IncidentsComponent } from './features/incidents/incidents.component';
-import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { authGuard, guestGuard, roleGuard } from './core/guards/auth.guard';
+import { UserRole } from './core/services/auth.service';
 
 export const routes: Routes = [
   // Public auth routes (Login, Register) using AuthLayout
@@ -30,6 +31,12 @@ export const routes: Routes = [
         path: 'incidents/create',
         loadComponent: () => import('./features/incidents/incident-create/incident-create.component')
           .then(m => m.IncidentCreateComponent)
+      },
+      {
+        path: 'admin/users',
+        canActivate: [roleGuard(UserRole.Admin)],
+        loadComponent: () => import('./features/admin/users/users.component')
+          .then(m => m.UsersComponent)
       },
       {
         path: 'incidents/:id',
