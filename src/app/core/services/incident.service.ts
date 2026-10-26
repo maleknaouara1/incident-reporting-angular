@@ -51,8 +51,8 @@ export class IncidentService {
     return this.http.put<ApiResponse<IncidentDto>>(`${this.baseUrl}/${id}/status`, { status });
   }
 
-  // Staff only
-  addComment(id: string, message: string, authorUserId: string): Observable<ApiResponse<IncidentDto>> {
-    return this.http.post<ApiResponse<IncidentDto>>(`${this.baseUrl}/${id}/comments`, { message, authorUserId });
+  // Staff only; the API records the signed-in user as the author
+  addComment(id: string, message: string): Observable<ApiResponse<IncidentDto>> {
+    return this.http.post<ApiResponse<IncidentDto>>(`${this.baseUrl}/${id}/comments`, { message });
   }
 }

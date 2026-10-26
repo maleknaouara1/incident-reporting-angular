@@ -48,9 +48,9 @@ export class IncidentActionsComponent {
     return this.incident.status === IncidentStatus.Closed;
   }
 
-  // Assigning resets the status to "Assigned" on the API, so only offer it before work starts
+  // Reassigning keeps the current status on the API, so any open incident can change hands
   get canAssign(): boolean {
-    return this.incident.status === IncidentStatus.New || this.incident.status === IncidentStatus.Assigned;
+    return !this.isClosed;
   }
 
   get isAssignedToMe(): boolean {
@@ -88,10 +88,10 @@ export class IncidentActionsComponent {
 
   addComment(): void {
     const message = this.commentForm.getRawValue().message.trim();
-    if (!message || !this.userId) {
+    if (!message) {
       return;
     }
-    this.run(this.incidentService.addComment(this.incident.id, message, this.userId), 'Comment added.',
+    this.run(this.incidentService.addComment(this.incident.id, message), 'Comment added.',
       () => this.commentForm.reset());
   }
 
