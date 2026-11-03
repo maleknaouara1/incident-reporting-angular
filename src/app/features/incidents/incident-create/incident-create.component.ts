@@ -5,6 +5,7 @@ import { IncidentService } from '../../../core/services/incident.service';
 import { IncidentCategory, IncidentPriority, CreateIncidentRequest } from '../../../core/models/incident.model';
 
 import { HttpErrorResponse } from '@angular/common/http';
+import { parseApiError } from '../../../core/http/api-error';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -84,23 +85,12 @@ export class IncidentCreateComponent {
         },
         error: (err: HttpErrorResponse) => {
           this.isSubmitting = false;
-          if (err.status === 400 && err.error && typeof err.error.errors === 'object') {
-            // Handle ASP.NET Core MVC ModelState / FluentValidation errors structure
-            const rfcErrors = err.error.errors;
-            Object.keys(rfcErrors).forEach(key => {
-              const fieldName = key.toLowerCase(); // Title -> title
-              const messages = rfcErrors[key];
-              if (Array.isArray(messages)) {
-                this.validationErrors[fieldName] = messages.join(' ');
-              }
-            });
-            this.errorMessage = err.error.title || 'Validation failed. Please correct the fields.';
-          } else if (err.status === 0) {
-            this.errorMessage = 'Could not connect to the backend server. Please verify the API is running.';
-          } else if (err.status === 403) {
+          if (err.status === 403) {
             this.errorMessage = 'You do not have permission to file incidents. Please sign in again or contact an administrator.';
           } else {
-            this.errorMessage = err.error?.message || 'An unexpected error occurred during incident creation.';
+            const { message, fieldErrors } = parseApiError(err, 'An unexpected error occurred during incident creation.');
+            this.errorMessage = message;
+            this.validationErrors = fieldErrors;
           }
         }
       });
