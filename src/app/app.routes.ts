@@ -16,7 +16,19 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
-      { path: 'register', component: RegisterComponent, canActivate: [guestGuard] }
+      { path: 'register', component: RegisterComponent, canActivate: [guestGuard] },
+      {
+        path: 'forgot-password',
+        canActivate: [guestGuard],
+        loadComponent: () => import('./features/auth/forgot-password/forgot-password.component')
+          .then(m => m.ForgotPasswordComponent)
+      },
+      {
+        path: 'reset-password',
+        canActivate: [guestGuard],
+        loadComponent: () => import('./features/auth/reset-password/reset-password.component')
+          .then(m => m.ResetPasswordComponent)
+      }
     ]
   },
   // Protected features (Dashboard, Incidents) using MainLayout & AuthGuard

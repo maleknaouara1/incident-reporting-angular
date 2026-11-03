@@ -168,6 +168,15 @@ export class AuthService {
     return this.refreshInFlight$;
   }
 
+  // Always succeeds with a generic message so it can't be used to probe which emails exist
+  requestPasswordReset(email: string): Observable<ApiResponse<boolean>> {
+    return this.http.post<ApiResponse<boolean>>(`${API_BASE_URL}/api/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<ApiResponse<boolean>> {
+    return this.http.post<ApiResponse<boolean>>(`${API_BASE_URL}/api/auth/reset-password`, { token, newPassword });
+  }
+
   register(request: RegisterRequest): Observable<ApiResponse<AuthResponse>> {
     return this.http.post<ApiResponse<AuthResponse>>(`${API_BASE_URL}/api/auth/register`, request);
   }

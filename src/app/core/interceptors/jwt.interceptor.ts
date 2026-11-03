@@ -7,7 +7,7 @@ import { throwError } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 
 // Anonymous auth endpoints: never send a bearer token and never try to refresh on their 401s
-const PUBLIC_AUTH_PATHS = ['login', 'register', 'refresh', 'logout'].map(
+const PUBLIC_AUTH_PATHS = ['login', 'register', 'refresh', 'logout', 'forgot-password', 'reset-password'].map(
   path => `${API_BASE_URL}/api/auth/${path}`.toLowerCase()
 );
 

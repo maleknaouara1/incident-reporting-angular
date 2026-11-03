@@ -118,6 +118,20 @@ describe('AuthService', () => {
     expect(failed).toBeTrue();
   });
 
+  it('requests a password reset code', () => {
+    service.requestPasswordReset('jane@test.test').subscribe();
+    const req = http.expectOne(`${API_BASE_URL}/api/auth/forgot-password`);
+    expect(req.request.body).toEqual({ email: 'jane@test.test' });
+    req.flush({ success: true, message: 'sent', data: true, errors: null });
+  });
+
+  it('resets the password with a code', () => {
+    service.resetPassword('code-123', 'NewPassw0rd').subscribe();
+    const req = http.expectOne(`${API_BASE_URL}/api/auth/reset-password`);
+    expect(req.request.body).toEqual({ token: 'code-123', newPassword: 'NewPassw0rd' });
+    req.flush({ success: true, message: 'done', data: true, errors: null });
+  });
+
   it('revokes the refresh token and clears the session on logout', () => {
     storeSession({});
     let isLoggedIn = true;
