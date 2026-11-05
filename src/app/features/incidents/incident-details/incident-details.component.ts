@@ -226,6 +226,39 @@ export class IncidentDetailsComponent implements OnInit {
     return this.actionLabels[action] || 'Activity Logged';
   }
 
+  // The API stores raw ids and enum names in history rows ("User 3fa8…", "InProgress");
+  // rebuild the text for the actions we know so it reads like the rest of the page.
+  historyDescription(item: IncidentHistoryDto): string | null {
+    switch (item.action) {
+      case IncidentHistoryAction.Created:
+        return `Reported by ${this.userLabel(this.incident?.createdByUserId ?? item.changedByUserId)}`;
+      case IncidentHistoryAction.CommentAdded:
+        return item.changedByUserId ? `By ${this.userLabel(item.changedByUserId)}` : null;
+      case IncidentHistoryAction.Assigned:
+      case IncidentHistoryAction.StatusChanged:
+        // The Was/Now tags already say it all
+        return item.changedByUserId ? `By ${this.userLabel(item.changedByUserId)}` : null;
+      default:
+        return item.description;
+    }
+  }
+
+  historyValue(item: IncidentHistoryDto, value: string | null): string {
+    if (!value) {
+      return '';
+    }
+    switch (item.action) {
+      case IncidentHistoryAction.Assigned:
+        return this.userLabel(value);
+      case IncidentHistoryAction.StatusChanged: {
+        const status = IncidentStatus[value as keyof typeof IncidentStatus];
+        return status ? STATUS_LABELS[status] : value;
+      }
+      default:
+        return value;
+    }
+  }
+
   getSeverityClass(priority: IncidentPriority): string {
     switch (priority) {
       case IncidentPriority.Low: return 'severity-low';

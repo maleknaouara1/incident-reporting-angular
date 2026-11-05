@@ -211,16 +211,16 @@
                               <span class="node-action">{{ getActionLabel(item.action) }}</span>
                               <span class="node-date">{{ item.createdAtUtc | date:'short' }}</span>
                             </div>
-                            @if (item.description) {
-                              <p class="node-desc">{{ item.description }}</p>
+                            @if (historyDescription(item); as description) {
+                              <p class="node-desc">{{ description }}</p>
                             }
                             @if (item.oldValue || item.newValue) {
                               <div class="node-diff">
                                 @if (item.oldValue) {
-                                  <span class="diff-tag old">Was: {{ item.oldValue }}</span>
+                                  <span class="diff-tag old">Was: {{ historyValue(item, item.oldValue) }}</span>
                                 }
                                 @if (item.newValue) {
-                                  <span class="diff-tag new">Now: {{ item.newValue }}</span>
+                                  <span class="diff-tag new">Now: {{ historyValue(item, item.newValue) }}</span>
                                 }
                               </div>
                             }
