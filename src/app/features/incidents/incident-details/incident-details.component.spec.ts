@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { IncidentDetailsComponent } from './incident-details.component';
 import { IncidentHistoryAction, IncidentHistoryDto } from '../../../core/models/incident.model';
+import { API_BASE_URL } from '../../../core/config/api.config';
 
 const ME = '11111111-1111-1111-1111-111111111111';
 const ENGINEER = 'aa791027-c98f-4eb5-8cc6-e5901d988d33';
@@ -74,5 +75,48 @@ describe('IncidentDetailsComponent history formatting', () => {
   it('leaves unknown values untouched', () => {
     const item = history(IncidentHistoryAction.StatusChanged, { newValue: 'Archived' });
     expect(component.historyValue(item, item.newValue)).toBe('Archived');
+  });
+});
+
+describe('IncidentDetailsComponent user directory', () => {
+  const DIRECTORY_URL = `${API_BASE_URL}/api/users/directory`;
+
+  const create = (role: number) => {
+    localStorage.setItem('auth_session', JSON.stringify({
+      userId: ME, fullName: 'Me', email: 'me@test.test', role,
+      accessToken: 'a', refreshToken: 'r', expiresAtUtc: new Date(Date.now() + 3_600_000).toISOString()
+    }));
+    TestBed.configureTestingModule({
+      imports: [IncidentDetailsComponent],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()]
+    });
+    const component = TestBed.createComponent(IncidentDetailsComponent).componentInstance;
+    component.ngOnInit();
+    return { component, http: TestBed.inject(HttpTestingController) };
+  };
+
+  afterEach(() => localStorage.clear());
+
+  it('loads the staff directory for Engineers and shows names', () => {
+    const { component, http } = create(2);
+
+    http.expectOne(DIRECTORY_URL).flush({
+      success: true, message: '', errors: null,
+      data: [
+        { id: ENGINEER, fullName: 'Eric Engineer', role: 2, isActive: true },
+        { id: REPORTER, fullName: 'Rita Reporter', role: 1, isActive: true }
+      ]
+    });
+
+    expect(component.userLabel(REPORTER)).toBe('Rita Reporter');
+    // Only active staff can be picked as assignees
+    expect(component.assignees.map(u => u.fullName)).toEqual(['Eric Engineer']);
+  });
+
+  it('does not call the directory for Reporters', () => {
+    const { component, http } = create(1);
+
+    http.expectNone(DIRECTORY_URL);
+    expect(component.userLabel(ENGINEER)).toBe('User #aa791027');
   });
 });

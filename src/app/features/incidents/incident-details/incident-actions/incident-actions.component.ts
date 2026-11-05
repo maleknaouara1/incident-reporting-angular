@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { IncidentService } from '../../../../core/services/incident.service';
 import { AuthService, UserRole } from '../../../../core/services/auth.service';
 import { ApiResponse } from '../../../../core/models/api-response.model';
-import { UserSummaryDto } from '../../../../core/models/user.model';
+import { UserDirectoryEntry } from '../../../../core/models/user.model';
 import { IncidentDto, IncidentStatus, NEXT_STATUS, STATUS_LABELS } from '../../../../core/models/incident.model';
 
 // Staff-only workflow panel: assign, advance status, comment
@@ -25,7 +25,7 @@ export class IncidentActionsComponent {
 
   @Input({ required: true }) incident!: IncidentDto;
   // Engineers/Admins an Admin can assign to (empty for Engineers, who can only self-assign)
-  @Input() assignees: UserSummaryDto[] = [];
+  @Input() assignees: UserDirectoryEntry[] = [];
   @Output() incidentChange = new EventEmitter<IncidentDto>();
 
   readonly userId = this.authService.getUserId();

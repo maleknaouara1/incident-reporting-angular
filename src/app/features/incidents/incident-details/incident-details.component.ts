@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService, UserRole } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
-import { UserSummaryDto } from '../../../core/models/user.model';
+import { UserDirectoryEntry } from '../../../core/models/user.model';
 import { IncidentActionsComponent } from './incident-actions/incident-actions.component';
 
 @Component({
@@ -39,12 +39,11 @@ export class IncidentDetailsComponent implements OnInit {
   // Workflow actions and the audit timeline API are restricted to Admin/Engineer
   readonly isStaff = this.authService.isStaff();
   readonly canViewTimeline = this.isStaff;
-  private readonly isAdmin = this.authService.hasRole(UserRole.Admin);
   private readonly currentUserId = this.authService.getUserId();
 
-  // Only Admins can list users; others see "You" or a short id
+  // Staff load the user directory; Reporters see "You" or a short id
   private userNames = new Map<string, string>();
-  assignees: UserSummaryDto[] = [];
+  assignees: UserDirectoryEntry[] = [];
 
   incident: IncidentDto | null = null;
   timeline: IncidentHistoryDto[] = [];
@@ -67,7 +66,7 @@ export class IncidentDetailsComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    if (this.isAdmin) {
+    if (this.isStaff) {
       this.loadUsers();
     }
     this.route.paramMap
@@ -166,7 +165,7 @@ export class IncidentDetailsComponent implements OnInit {
   }
 
   private loadUsers(): void {
-    this.userService.getAll()
+    this.userService.getDirectory()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
