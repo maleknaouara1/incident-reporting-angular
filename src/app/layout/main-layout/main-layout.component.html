@@ -14,6 +14,12 @@
         <span class="nav-icon">🚨</span>
         <span class="nav-label">Incidents</span>
       </a>
+      @if (isAdmin) {
+        <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Users</span>
+        </a>
+      }
     </nav>
   </aside>
 
@@ -22,7 +28,10 @@
     <header class="header">
       <h2 class="page-title">AI Incident Reporting System</h2>
       <div class="user-profile">
-        <span class="user-badge">Admin</span>
+        @if (userName) {
+          <span class="user-name">{{ userName }}</span>
+        }
+        <span class="user-badge">{{ roleLabel }}</span>
         <button class="logout-btn" (click)="onLogout()">Logout</button>
       </div>
     </header>

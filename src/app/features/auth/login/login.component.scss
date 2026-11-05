@@ -91,3 +91,15 @@
     }
   }
 }
+
+.forgot-link {
+  align-self: flex-end;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #3b82f6;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

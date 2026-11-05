@@ -1,0 +1,68 @@
+<div class="page-header">
+  <h1>User Management</h1>
+  <p>Change roles and activate or deactivate accounts.</p>
+</div>
+
+@if (isLoading) {
+  <div class="state-card"><div class="spinner"></div><p>Loading users...</p></div>
+} @else if (errorMessage) {
+  <div class="state-card">
+    <p class="error-text">{{ errorMessage }}</p>
+    <button type="button" class="btn" (click)="load()">Retry</button>
+  </div>
+} @else {
+  <div class="table-container">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users; track user.id) {
+          @let isSelf = user.id === currentUserId;
+          @let isSaving = savingUserId === user.id;
+          <tr [class.inactive]="!user.isActive">
+            <td>
+              <strong>{{ user.fullName }}</strong>
+              @if (isSelf) { <span class="you-tag">You</span> }
+            </td>
+            <td>{{ user.email }}</td>
+            <td>
+              @if (isSelf) {
+                {{ roleLabel(user.role) }}
+              } @else {
+                <select [value]="user.role" [disabled]="isSaving"
+                        (change)="changeRole(user, $any($event.target).value)"
+                        [attr.aria-label]="'Role for ' + user.fullName">
+                  @for (r of roles; track r.value) {
+                    <option [value]="r.value" [selected]="r.value === user.role">{{ r.label }}</option>
+                  }
+                </select>
+              }
+            </td>
+            <td>
+              <span class="status" [class.active]="user.isActive">{{ user.isActive ? 'Active' : 'Inactive' }}</span>
+            </td>
+            <td>{{ user.createdAtUtc | date:'mediumDate' }}</td>
+            <td class="row-actions">
+              @if (!isSelf) {
+                <button type="button" class="btn" [class.danger]="user.isActive" [disabled]="isSaving" (click)="toggleActive(user)">
+                  {{ user.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+              }
+              @if (rowMessage?.userId === user.id) {
+                <span class="row-message" [class.error]="rowMessage?.isError">{{ rowMessage?.text }}</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

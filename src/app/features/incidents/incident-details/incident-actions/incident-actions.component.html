@@ -1,0 +1,55 @@
+<section class="actions-card">
+  <h2>🛠️ Workflow</h2>
+
+  @if (errorMessage) {
+    <div class="banner error" role="alert">{{ errorMessage }}</div>
+  }
+  @if (successMessage) {
+    <div class="banner success" role="status">{{ successMessage }}</div>
+  }
+
+  @if (isClosed) {
+    <p class="muted">This incident is closed and can no longer be changed.</p>
+  } @else {
+    <!-- Assignment -->
+    @if (canAssign) {
+      <div class="action-group">
+        <h3>Assignment</h3>
+        @if (!isAssignedToMe) {
+          <button type="button" class="btn primary" [disabled]="isBusy" (click)="assignToMe()">Assign to me</button>
+        }
+        @if (isAdmin && assignees.length > 0) {
+          <form [formGroup]="assignForm" (ngSubmit)="assignToSelected()" class="inline-form">
+            <select formControlName="assigneeId" aria-label="Assign to">
+              <option value="" disabled>Assign to…</option>
+              @for (user of assignees; track user.id) {
+                <option [value]="user.id">{{ user.fullName }}</option>
+              }
+            </select>
+            <button type="submit" class="btn" [disabled]="assignForm.invalid || isBusy">Assign</button>
+          </form>
+        }
+      </div>
+    }
+
+    <!-- Status -->
+    @if (nextStatus; as next) {
+      <div class="action-group">
+        <h3>Status</h3>
+        <button type="button" class="btn primary" [disabled]="isBusy" (click)="advanceStatus()">
+          Move to {{ statusLabel(next) }}
+        </button>
+      </div>
+    } @else if (isNew) {
+      <p class="muted">Assign this incident to start working on it.</p>
+    }
+
+    <!-- Comment -->
+    <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="action-group">
+      <h3><label for="comment">Add a comment</label></h3>
+      <textarea id="comment" formControlName="message" rows="3" maxlength="2000"
+                placeholder="Share an update, findings, or next steps..."></textarea>
+      <button type="submit" class="btn" [disabled]="commentForm.invalid || isBusy">Post comment</button>
+    </form>
+  }
+</section>

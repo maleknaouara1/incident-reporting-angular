@@ -74,4 +74,55 @@ export interface CreateIncidentRequest {
   category: IncidentCategory;
 }
 
+export type IncidentSortField = 'createdAtUtc' | 'updatedAtUtc' | 'priority' | 'status' | 'title';
+
+// Query string accepted by GET /api/incidents
+export interface IncidentQuery {
+  pageNumber?: number;
+  pageSize?: number;
+  status?: IncidentStatus | null;
+  priority?: IncidentPriority | null;
+  category?: IncidentCategory | null;
+  assignedToUserId?: string | null;
+  search?: string | null;
+  sortBy?: IncidentSortField;
+  sortDescending?: boolean;
+}
+
+// Mirrors the API's one-step workflow (IncidentService.IsValidTransition)
+export const NEXT_STATUS: Partial<Record<IncidentStatus, IncidentStatus>> = {
+  [IncidentStatus.Assigned]: IncidentStatus.InProgress,
+  [IncidentStatus.InProgress]: IncidentStatus.Resolved,
+  [IncidentStatus.Resolved]: IncidentStatus.Closed
+};
+
+export const PRIORITY_LABELS: Record<IncidentPriority, string> = {
+  [IncidentPriority.Low]: 'Low',
+  [IncidentPriority.Medium]: 'Medium',
+  [IncidentPriority.High]: 'High',
+  [IncidentPriority.Critical]: 'Critical'
+};
+
+export const STATUS_LABELS: Record<IncidentStatus, string> = {
+  [IncidentStatus.New]: 'New',
+  [IncidentStatus.Assigned]: 'Assigned',
+  [IncidentStatus.InProgress]: 'In Progress',
+  [IncidentStatus.Resolved]: 'Resolved',
+  [IncidentStatus.Closed]: 'Closed'
+};
+
+export const CATEGORY_LABELS: Record<IncidentCategory, string> = {
+  [IncidentCategory.Infrastructure]: 'Infrastructure',
+  [IncidentCategory.Network]: 'Network',
+  [IncidentCategory.Security]: 'Security',
+  [IncidentCategory.Application]: 'Application',
+  [IncidentCategory.Database]: 'Database',
+  [IncidentCategory.Access]: 'Access',
+  [IncidentCategory.Other]: 'Other'
+};
+
+// Turns a label map into [{ value, label }] options for <select>s
+export const toOptions = <T extends number>(labels: Record<T, string>) =>
+  (Object.entries(labels) as [string, string][]).map(([value, label]) => ({ value: Number(value) as T, label }));
+
 

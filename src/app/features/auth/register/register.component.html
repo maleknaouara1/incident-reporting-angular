@@ -1,7 +1,14 @@
 <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-  <div *ngIf="errorMessage" class="error-banner">
-    {{ errorMessage }}
-  </div>
+  @if (errorMessage) {
+    <div class="error-banner">
+      {{ errorMessage }}
+    </div>
+  }
+  @if (successMessage) {
+    <div class="success-banner">
+      {{ successMessage }}
+    </div>
+  }
 
   <div class="form-group">
     <label for="name">Full Name</label>
@@ -11,10 +18,17 @@
       formControlName="name"
       placeholder="John Doe"
       class="form-control"
-    />
-    <div *ngIf="registerForm.get('name')?.touched && registerForm.get('name')?.invalid" class="validation-error">
-      Full name is required (min 2 characters).
-    </div>
+      />
+    @if (registerForm.get('name')?.touched && registerForm.get('name')?.invalid) {
+      <div class="validation-error">
+        Full name is required (min 2 characters).
+      </div>
+    }
+    @if (validationErrors['name']) {
+      <div class="validation-error">
+        {{ validationErrors['name'] }}
+      </div>
+    }
   </div>
 
   <div class="form-group">
@@ -25,10 +39,17 @@
       formControlName="email"
       placeholder="e.g. user@example.com"
       class="form-control"
-    />
-    <div *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="validation-error">
-      Please enter a valid email address.
-    </div>
+      />
+    @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
+      <div class="validation-error">
+        Please enter a valid email address.
+      </div>
+    }
+    @if (validationErrors['email']) {
+      <div class="validation-error">
+        {{ validationErrors['email'] }}
+      </div>
+    }
   </div>
 
   <div class="form-group">
@@ -39,10 +60,17 @@
       formControlName="password"
       placeholder="••••••••"
       class="form-control"
-    />
-    <div *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid" class="validation-error">
-      Password must be at least 6 characters.
-    </div>
+      />
+    @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
+      <div class="validation-error">
+        Password must be at least 8 characters and include an uppercase letter, a lowercase letter and a digit.
+      </div>
+    }
+    @if (validationErrors['password']) {
+      <div class="validation-error">
+        {{ validationErrors['password'] }}
+      </div>
+    }
   </div>
 
   <div class="form-group">
@@ -53,14 +81,16 @@
       formControlName="confirmPassword"
       placeholder="••••••••"
       class="form-control"
-    />
-    <div *ngIf="registerForm.get('confirmPassword')?.touched && registerForm.hasError('mismatch')" class="validation-error">
-      Passwords must match.
-    </div>
+      />
+    @if (registerForm.get('confirmPassword')?.touched && registerForm.hasError('mismatch')) {
+      <div class="validation-error">
+        Passwords must match.
+      </div>
+    }
   </div>
 
-  <button type="submit" class="submit-btn" [disabled]="registerForm.invalid">
-    Create Account
+  <button type="submit" class="submit-btn" [disabled]="registerForm.invalid || isSubmitting">
+    {{ isSubmitting ? 'Creating account...' : 'Create Account' }}
   </button>
 
   <p class="auth-redirect">

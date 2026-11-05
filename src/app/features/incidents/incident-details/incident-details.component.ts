@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IncidentService } from '../../../core/services/incident.service';
@@ -8,23 +8,43 @@ import {
   IncidentPriority,
   IncidentStatus,
   IncidentCategory,
-  IncidentHistoryAction
+  IncidentHistoryAction,
+  PRIORITY_LABELS,
+  STATUS_LABELS,
+  CATEGORY_LABELS
 } from '../../../core/models/incident.model';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService, UserRole } from '../../../core/services/auth.service';
+import { UserService } from '../../../core/services/user.service';
+import { UserSummaryDto } from '../../../core/models/user.model';
+import { IncidentActionsComponent } from './incident-actions/incident-actions.component';
 
 @Component({
-  selector: 'app-incident-details',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './incident-details.component.html',
-  styleUrl: './incident-details.component.scss'
+    selector: 'app-incident-details',
+    imports: [CommonModule, RouterLink, IncidentActionsComponent],
+    templateUrl: './incident-details.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    styleUrl: './incident-details.component.scss'
 })
 export class IncidentDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private incidentService = inject(IncidentService);
   private destroyRef = inject(DestroyRef);
+
+  private authService = inject(AuthService);
+  private userService = inject(UserService);
+
+  // Workflow actions and the audit timeline API are restricted to Admin/Engineer
+  readonly isStaff = this.authService.isStaff();
+  readonly canViewTimeline = this.isStaff;
+  private readonly isAdmin = this.authService.hasRole(UserRole.Admin);
+  private readonly currentUserId = this.authService.getUserId();
+
+  // Only Admins can list users; others see "You" or a short id
+  private userNames = new Map<string, string>();
+  assignees: UserSummaryDto[] = [];
 
   incident: IncidentDto | null = null;
   timeline: IncidentHistoryDto[] = [];
@@ -38,31 +58,6 @@ export class IncidentDetailsComponent implements OnInit {
 
   incidentId: string | null = null;
 
-  readonly priorityLabels: Record<IncidentPriority, string> = {
-    [IncidentPriority.Low]: 'Low',
-    [IncidentPriority.Medium]: 'Medium',
-    [IncidentPriority.High]: 'High',
-    [IncidentPriority.Critical]: 'Critical'
-  };
-
-  readonly statusLabels: Record<IncidentStatus, string> = {
-    [IncidentStatus.New]: 'New',
-    [IncidentStatus.Assigned]: 'Assigned',
-    [IncidentStatus.InProgress]: 'In Progress',
-    [IncidentStatus.Resolved]: 'Resolved',
-    [IncidentStatus.Closed]: 'Closed'
-  };
-
-  readonly categoryLabels: Record<IncidentCategory, string> = {
-    [IncidentCategory.Infrastructure]: 'Infrastructure',
-    [IncidentCategory.Network]: 'Network',
-    [IncidentCategory.Security]: 'Security',
-    [IncidentCategory.Application]: 'Application',
-    [IncidentCategory.Database]: 'Database',
-    [IncidentCategory.Access]: 'Access',
-    [IncidentCategory.Other]: 'Other'
-  };
-
   readonly actionLabels: Record<IncidentHistoryAction, string> = {
     [IncidentHistoryAction.Created]: 'Incident Created',
     [IncidentHistoryAction.AiAnalysisGenerated]: 'AI Analysis Completed',
@@ -72,6 +67,9 @@ export class IncidentDetailsComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    if (this.isAdmin) {
+      this.loadUsers();
+    }
     this.route.paramMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(params => {
@@ -97,7 +95,9 @@ export class IncidentDetailsComponent implements OnInit {
 
     this.isNotFound = false;
     this.loadIncident(this.incidentId);
-    this.loadTimeline(this.incidentId);
+    if (this.canViewTimeline) {
+      this.loadTimeline(this.incidentId);
+    }
   }
 
   loadIncident(id: string): void {
@@ -130,7 +130,6 @@ export class IncidentDetailsComponent implements OnInit {
           } else {
             this.pageErrorMessage = err.error?.message || 'An unexpected error occurred while loading the incident.';
           }
-          console.error('Failed to load incident', err);
         }
       });
   }
@@ -162,9 +161,41 @@ export class IncidentDetailsComponent implements OnInit {
           } else {
             this.timelineErrorMessage = err.error?.message || 'Failed to load activity log.';
           }
-          console.error('Failed to load timeline', err);
         }
       });
+  }
+
+  private loadUsers(): void {
+    this.userService.getAll()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const users = response.data ?? [];
+          this.userNames = new Map(users.map(u => [u.id, u.fullName]));
+          this.assignees = users.filter(u => u.isActive && u.role !== UserRole.Reporter);
+        },
+        // Names are a nice-to-have; fall back to ids if the directory can't be loaded
+        error: () => {}
+      });
+  }
+
+  onIncidentChange(updated: IncidentDto): void {
+    this.incident = updated;
+    if (this.canViewTimeline) {
+      this.loadTimeline(updated.id);
+    }
+  }
+
+  userLabel(userId: string | null): string {
+    if (!userId) {
+      return '';
+    }
+    const name = this.userNames.get(userId);
+    const you = userId === this.currentUserId;
+    if (name) {
+      return you ? `${name} (you)` : name;
+    }
+    return you ? 'You' : `User #${userId.substring(0, 8)}`;
   }
 
   retry(): void {
@@ -180,19 +211,52 @@ export class IncidentDetailsComponent implements OnInit {
   }
 
   getPriorityLabel(priority: IncidentPriority): string {
-    return this.priorityLabels[priority] || 'Unknown';
+    return PRIORITY_LABELS[priority] || 'Unknown';
   }
 
   getStatusLabel(status: IncidentStatus): string {
-    return this.statusLabels[status] || 'Unknown';
+    return STATUS_LABELS[status] || 'Unknown';
   }
 
   getCategoryLabel(category: IncidentCategory): string {
-    return this.categoryLabels[category] || 'Unknown';
+    return CATEGORY_LABELS[category] || 'Unknown';
   }
 
   getActionLabel(action: IncidentHistoryAction): string {
     return this.actionLabels[action] || 'Activity Logged';
+  }
+
+  // The API stores raw ids and enum names in history rows ("User 3fa8…", "InProgress");
+  // rebuild the text for the actions we know so it reads like the rest of the page.
+  historyDescription(item: IncidentHistoryDto): string | null {
+    switch (item.action) {
+      case IncidentHistoryAction.Created:
+        return `Reported by ${this.userLabel(this.incident?.createdByUserId ?? item.changedByUserId)}`;
+      case IncidentHistoryAction.CommentAdded:
+        return item.changedByUserId ? `By ${this.userLabel(item.changedByUserId)}` : null;
+      case IncidentHistoryAction.Assigned:
+      case IncidentHistoryAction.StatusChanged:
+        // The Was/Now tags already say it all
+        return item.changedByUserId ? `By ${this.userLabel(item.changedByUserId)}` : null;
+      default:
+        return item.description;
+    }
+  }
+
+  historyValue(item: IncidentHistoryDto, value: string | null): string {
+    if (!value) {
+      return '';
+    }
+    switch (item.action) {
+      case IncidentHistoryAction.Assigned:
+        return this.userLabel(value);
+      case IncidentHistoryAction.StatusChanged: {
+        const status = IncidentStatus[value as keyof typeof IncidentStatus];
+        return status ? STATUS_LABELS[status] : value;
+      }
+      default:
+        return value;
+    }
   }
 
   getSeverityClass(priority: IncidentPriority): string {
