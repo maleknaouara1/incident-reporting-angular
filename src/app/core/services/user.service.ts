@@ -3,10 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { ApiResponse } from '../models/api-response.model';
-import { UserSummaryDto } from '../models/user.model';
+import { UserDirectoryEntry, UserSummaryDto } from '../models/user.model';
 import { UserRole } from './auth.service';
 
-// Every /api/users endpoint is Admin only
+// /api/users endpoints are Admin only, except the staff directory
 @Injectable({
   providedIn: 'root'
 })
@@ -16,6 +16,11 @@ export class UserService {
 
   getAll(): Observable<ApiResponse<UserSummaryDto[]>> {
     return this.http.get<ApiResponse<UserSummaryDto[]>>(this.baseUrl);
+  }
+
+  // Admins and Engineers: names and roles of every user, to display people instead of ids
+  getDirectory(): Observable<ApiResponse<UserDirectoryEntry[]>> {
+    return this.http.get<ApiResponse<UserDirectoryEntry[]>>(`${this.baseUrl}/directory`);
   }
 
   changeRole(id: string, role: UserRole): Observable<ApiResponse<UserSummaryDto>> {
