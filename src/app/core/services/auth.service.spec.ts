@@ -12,7 +12,6 @@ const authResponse = (overrides: Partial<AuthResponse> = {}): AuthResponse => ({
   email: 'jane@test.test',
   role: UserRole.Engineer,
   accessToken: 'access-1',
-  refreshToken: 'refresh-1',
   expiresAtUtc: new Date(Date.now() + 3_600_000).toISOString(),
   ...overrides
 });
@@ -48,6 +47,8 @@ describe('AuthService', () => {
 
     const req = http.expectOne(`${API_BASE_URL}/api/auth/login`);
     expect(req.request.method).toBe('POST');
+    // Needed for the browser to accept the HttpOnly refresh cookie
+    expect(req.request.withCredentials).toBeTrue();
     req.flush({ success: true, message: '', data: authResponse(), errors: null });
 
     expect(service.isAuthenticated()).toBeTrue();
@@ -73,12 +74,29 @@ describe('AuthService', () => {
     expect(service.isAccessTokenExpired()).toBeFalse();
   });
 
-  it('stays authenticated with an expired access token while a refresh token exists', () => {
+  it('stays authenticated with an expired access token (the refresh cookie renews it)', () => {
     storeSession({ expiresAtUtc: new Date(Date.now() - 1000).toISOString() });
     expect(service.isAuthenticated()).toBeTrue();
+    expect(service.isAccessTokenExpired()).toBeTrue();
+  });
 
-    storeSession({ expiresAtUtc: new Date(Date.now() - 1000).toISOString(), refreshToken: '' });
-    expect(service.isAuthenticated()).toBeFalse();
+  it('never keeps a refresh token in localStorage', () => {
+    service.login({ email: 'jane@test.test', password: 'Secret123' }).subscribe();
+    http.expectOne(`${API_BASE_URL}/api/auth/login`)
+      .flush({ success: true, message: '', data: { ...authResponse(), refreshToken: 'leaked' }, errors: null });
+
+    expect(localStorage.getItem(SESSION_KEY)).not.toContain('leaked');
+  });
+
+  it('removes refresh tokens saved by older versions', () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ ...authResponse(), refreshToken: 'legacy-token' }));
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.inject(AuthService);
+
+    expect(localStorage.getItem(SESSION_KEY)).not.toContain('legacy-token');
+    expect(JSON.parse(localStorage.getItem(SESSION_KEY)!).accessToken).toBe('access-1');
   });
 
   it('checks roles', () => {
@@ -96,15 +114,13 @@ describe('AuthService', () => {
     service.refreshAccessToken().subscribe(t => tokens.push(t));
 
     const req = http.expectOne(`${API_BASE_URL}/api/auth/refresh`);
-    expect(req.request.body).toEqual({ refreshToken: 'refresh-1' });
-    req.flush({ success: true, message: '', data: authResponse({ accessToken: 'access-2', refreshToken: 'refresh-2' }), errors: null });
+    // The refresh token travels in the cookie, not in the body
+    expect(req.request.body).toEqual({});
+    expect(req.request.withCredentials).toBeTrue();
+    req.flush({ success: true, message: '', data: authResponse({ accessToken: 'access-2' }), errors: null });
 
     expect(tokens).toEqual(['access-2', 'access-2']);
     expect(service.getToken()).toBe('access-2');
-  });
-
-  it('fails the refresh when there is no refresh token', (done) => {
-    service.refreshAccessToken().subscribe({ error: () => done() });
   });
 
   it('errors when the API rejects the refresh', () => {
@@ -132,7 +148,7 @@ describe('AuthService', () => {
     req.flush({ success: true, message: 'done', data: true, errors: null });
   });
 
-  it('revokes the refresh token and clears the session on logout', () => {
+  it('revokes the refresh cookie and clears the session on logout', () => {
     storeSession({});
     let isLoggedIn = true;
     service.isAuthenticated$.subscribe(v => (isLoggedIn = v));
@@ -140,7 +156,7 @@ describe('AuthService', () => {
     service.logout();
 
     const req = http.expectOne(`${API_BASE_URL}/api/auth/logout`);
-    expect(req.request.body).toEqual({ refreshToken: 'refresh-1' });
+    expect(req.request.withCredentials).toBeTrue();
     req.flush({ success: true, message: '', data: true, errors: null });
 
     expect(localStorage.getItem(SESSION_KEY)).toBeNull();
