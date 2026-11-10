@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { finalize, map, shareReplay, tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../config/api.config';
@@ -18,7 +18,6 @@ export interface AuthResponse {
   email: string;
   role: UserRole;
   accessToken: string;
-  refreshToken: string;
   expiresAtUtc: string;
 }
 
@@ -33,17 +32,20 @@ export interface RegisterRequest {
   password: string;
 }
 
+// The refresh token is never stored here: the API keeps it in an HttpOnly cookie
 interface StoredSession {
   userId: string;
   fullName: string;
   email: string;
   role: UserRole;
   accessToken: string;
-  refreshToken: string;
   expiresAtUtc: string;
 }
 
 const SESSION_KEY = 'auth_session';
+
+// Only the auth endpoints read the refresh token cookie, so only they send credentials
+const WITH_COOKIE = { withCredentials: true };
 
 // Treat the access token as expired slightly early so requests never race its expiry.
 const EXPIRY_SKEW_MS = 30_000;
@@ -64,7 +66,17 @@ export class AuthService {
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    this.dropLegacyRefreshToken();
     this.loggedIn$.next(this.hasToken());
+  }
+
+  // Sessions saved by older versions still hold a refresh token in localStorage; remove it
+  private dropLegacyRefreshToken(): void {
+    const session = this.getSession() as (StoredSession & { refreshToken?: string }) | null;
+    if (session?.refreshToken !== undefined) {
+      delete session.refreshToken;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
   }
 
   private getSession(): StoredSession | null {
@@ -82,13 +94,10 @@ export class AuthService {
     }
   }
 
-  // A session is usable while the access token is valid or it can still be refreshed
+  // A session is usable while it exists: an expired access token is renewed through the
+  // refresh cookie, and the interceptor ends the session if that fails
   private hasToken(): boolean {
-    const session = this.getSession();
-    if (!session?.accessToken) {
-      return false;
-    }
-    return !this.isAccessTokenExpired() || !!session.refreshToken;
+    return !!this.getSession()?.accessToken;
   }
 
   // Expose consistent synchronous check
@@ -132,7 +141,7 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<ApiResponse<AuthResponse>> {
-    return this.http.post<ApiResponse<AuthResponse>>(`${API_BASE_URL}/api/auth/login`, credentials).pipe(
+    return this.http.post<ApiResponse<AuthResponse>>(`${API_BASE_URL}/api/auth/login`, credentials, WITH_COOKIE).pipe(
       tap(response => {
         if (response && response.success && response.data) {
           this.storeSession(response.data);
@@ -142,16 +151,11 @@ export class AuthService {
     );
   }
 
-  // Exchanges the refresh token for a new token pair and returns the new access token
+  // Exchanges the refresh cookie for a new access token (the API also rotates the cookie)
   refreshAccessToken(): Observable<string> {
-    const refreshToken = this.getSession()?.refreshToken;
-    if (!refreshToken) {
-      return throwError(() => new Error('No refresh token available.'));
-    }
-
     if (!this.refreshInFlight$) {
       this.refreshInFlight$ = this.http
-        .post<ApiResponse<AuthResponse>>(`${API_BASE_URL}/api/auth/refresh`, { refreshToken })
+        .post<ApiResponse<AuthResponse>>(`${API_BASE_URL}/api/auth/refresh`, {}, WITH_COOKIE)
         .pipe(
           map(response => {
             if (!response?.success || !response.data) {
@@ -191,7 +195,6 @@ export class AuthService {
       email: data.email,
       role: data.role,
       accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
       expiresAtUtc: data.expiresAtUtc
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -204,12 +207,9 @@ export class AuthService {
     this.loggedIn$.next(false);
   }
 
-  // Revokes the refresh token server-side (best effort) and clears the local session
+  // Revokes the refresh cookie server-side (best effort) and clears the local session
   logout(): void {
-    const refreshToken = this.getSession()?.refreshToken;
-    if (refreshToken) {
-      this.http.post(`${API_BASE_URL}/api/auth/logout`, { refreshToken }).subscribe({ error: () => {} });
-    }
+    this.http.post(`${API_BASE_URL}/api/auth/logout`, {}, WITH_COOKIE).subscribe({ error: () => {} });
     this.clearSession();
   }
 }
