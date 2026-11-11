@@ -4,13 +4,11 @@ import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/ht
 
 import { routes } from './app.routes';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(withXhr(), withInterceptors([jwtInterceptor])),
-    provideAnimationsAsync()
+    provideHttpClient(withXhr(), withInterceptors([jwtInterceptor]))
   ]
 };

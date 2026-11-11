@@ -5,9 +5,6 @@
 @import '@fontsource/inter/latin-500.css';
 @import '@fontsource/inter/latin-600.css';
 @import '@fontsource/inter/latin-700.css';
-@import '@fontsource/roboto/latin-300.css';
-@import '@fontsource/roboto/latin-400.css';
-@import '@fontsource/roboto/latin-500.css';
 
 html, body {
   height: 100%;
@@ -21,10 +18,4 @@ html, body {
 
 *, *:before, *:after {
   box-sizing: inherit;
-}
-
-/* Material components keep their own Roboto typography (from the prebuilt theme);
-   Inter stays the font for page copy/headings we control directly. */
-.mat-typography {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
